@@ -12,7 +12,11 @@ import {
   Mail,
   ShoppingBag,
   LogInIcon,
+  LogOut,
+  User2,
 } from "lucide-react"
+
+import { useSession, signOut } from "next-auth/react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -76,6 +80,8 @@ const MobileLink = ({ href, label, Icon, active }) => (
 
 const Navbar = () => {
   const pathname = usePathname()
+
+  const { data: session } = useSession()
 
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -169,23 +175,52 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* ── Desktop CTA ── */}
+        {/* ── Desktop Actions ── */}
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 rounded-lg border-white/10 bg-transparent font-mono text-[0.65rem] uppercase tracking-widest text-white/50 transition-all duration-300 hover:border-amber-500 hover:bg-amber-500 hover:text-neutral-950"
-            asChild
-          >
-            <Link href="/login">
-              <div className="relative">
-                <LogInIcon className="h-3 w-3" />
-              </div>
 
-              Login
-            </Link>
-          </Button>
+          {/* User Info */}
+
+          {session?.user && (
+            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-4 py-2">
+              <User2 className="h-4 w-4 text-amber-400" />
+
+              <span className="font-mono text-[0.65rem] uppercase tracking-widest text-white/70">
+                {session.user.name || session.user.email}
+              </span>
+            </div>
+          )}
+
+          {/* Login / Logout */}
+
+          {session ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="gap-2 rounded-lg border-red-500/20 bg-transparent font-mono text-[0.65rem] uppercase tracking-widest text-red-400 transition-all duration-300 hover:bg-red-500 hover:text-white"
+            >
+              <LogOut className="h-3 w-3" />
+
+              Logout
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 rounded-lg border-white/10 bg-transparent font-mono text-[0.65rem] uppercase tracking-widest text-white/50 transition-all duration-300 hover:border-amber-500 hover:bg-amber-500 hover:text-neutral-950"
+              asChild
+            >
+              <Link href="/login">
+                <LogInIcon className="h-3 w-3" />
+
+                Login
+              </Link>
+            </Button>
+          )}
+
+          {/* Cart */}
+
           <Button
             variant="outline"
             size="sm"
@@ -193,15 +228,9 @@ const Navbar = () => {
             asChild
           >
             <Link href="/dashboard">
-              <div className="relative">
-                <ShoppingBag className="h-3 w-3" />
+              <ShoppingBag className="h-3 w-3" />
 
-                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] text-black">
-                  2
-                </span>
-              </div>
-
-              Your cart 
+              Your Cart
             </Link>
           </Button>
         </div>
@@ -242,11 +271,11 @@ const Navbar = () => {
             </Button>
           </SheetTrigger>
 
-          {/* ── Drawer ── */}
+          {/* ── Mobile Drawer ── */}
 
           <SheetContent
             side="right"
-            className="w-72 border-l border-white/[0.06] bg-neutral-950 p-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:slide-in-from-right data-[state=closed]:slide-out-to-right"
+            className="w-72 border-l border-white/[0.06] bg-neutral-950 p-0"
           >
             {/* Header */}
 
@@ -255,6 +284,28 @@ const Navbar = () => {
                 Marketplace
               </span>
             </div>
+
+            {/* User */}
+
+            {session?.user && (
+              <div className="border-b border-white/[0.06] px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/10">
+                    <User2 className="h-5 w-5 text-amber-400" />
+                  </div>
+
+                  <div>
+                    <p className="font-mono text-xs uppercase tracking-widest text-white/70">
+                      {session.user.name || "User"}
+                    </p>
+
+                    <p className="text-xs text-white/30">
+                      {session.user.email}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Links */}
 
@@ -278,27 +329,54 @@ const Navbar = () => {
 
             <Separator className="bg-white/[0.05]" />
 
-            {/* CTA */}
+            {/* Mobile Actions */}
 
-            <div className="p-4">
+            <div className="flex flex-col gap-3 p-4">
+
               <SheetClose asChild>
                 <Button
-                  className="w-full gap-2 bg-amber-500 font-mono text-[0.65rem] uppercase tracking-widest text-neutral-950 hover:bg-amber-400"
+                  variant="outline"
+                  className="w-full gap-2 border-white/10 bg-transparent font-mono text-[0.65rem] uppercase tracking-widest text-white/60 hover:border-amber-500 hover:bg-amber-500 hover:text-black"
                   asChild
                 >
-                  <Link href="/shop">
+                  <Link href="/dashboard">
                     <ShoppingBag className="h-3.5 w-3.5" />
-                    Shop Now
+
+                    Your Cart
                   </Link>
                 </Button>
               </SheetClose>
+
+              {session ? (
+                <Button
+                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  className="w-full gap-2 bg-red-500 font-mono text-[0.65rem] uppercase tracking-widest text-white hover:bg-red-400"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+
+                  Logout
+                </Button>
+              ) : (
+                <SheetClose asChild>
+                  <Button
+                    className="w-full gap-2 bg-amber-500 font-mono text-[0.65rem] uppercase tracking-widest text-neutral-950 hover:bg-amber-400"
+                    asChild
+                  >
+                    <Link href="/login">
+                      <LogInIcon className="h-3.5 w-3.5" />
+
+                      Login
+                    </Link>
+                  </Button>
+                </SheetClose>
+              )}
             </div>
 
             {/* Footer */}
 
             <div className="absolute bottom-6 left-6">
               <p className="font-mono text-[0.6rem] uppercase tracking-widest text-white/15">
-                © 2026 My App
+                © 2026 Marketplace
               </p>
             </div>
           </SheetContent>
